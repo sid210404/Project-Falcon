@@ -1,0 +1,345 @@
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8">
+
+<title>Falcon Backtest Report</title>
+
+<style>
+
+body {
+
+    font-family: Arial, sans-serif;
+    background:#f5f5f5;
+    margin:40px;
+
+}
+
+.container {
+
+    background:white;
+
+    padding:40px;
+
+    border-radius:10px;
+
+}
+
+table {
+
+    width:100%;
+
+    border-collapse:collapse;
+
+}
+
+th,td {
+
+    border:1px solid #ddd;
+
+    padding:8px;
+
+}
+
+th {
+
+    background:#1f2937;
+
+    color:white;
+
+}
+
+.metric {
+
+    display:inline-block;
+
+    width:250px;
+
+    margin-bottom:12px;
+
+}
+
+iframe {
+
+    width:100%;
+
+    height:650px;
+
+    border:none;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Project Falcon</h1>
+
+<h2>Backtest Report</h2>
+
+<p><b>Generated:</b> 2026-07-30 23:20:54.206589</p>
+
+<hr>
+
+<h2>Configuration</h2>
+
+<p><b>Strategy:</b> ORB Strategy</p>
+
+<p><b>Symbol:</b> RELIANCE</p>
+
+<p><b>Interval:</b> 15m</p>
+
+<hr>
+
+<h2>Portfolio Summary</h2>
+
+<div class="metric"><b>Initial Capital:</b> ₹100,000.00</div>
+
+<div class="metric"><b>Final Capital:</b> ₹95,499.76</div>
+
+<div class="metric"><b>Total PnL:</b> ₹-4,500.24</div>
+
+<div class="metric"><b>Return:</b> -4.50%</div>
+
+<div class="metric"><b>Total Trades:</b> 9</div>
+
+<div class="metric"><b>Winning Trades:</b> 4</div>
+
+<div class="metric"><b>Losing Trades:</b> 5</div>
+
+<div class="metric"><b>Win Rate:</b> 44.44%</div>
+
+<div class="metric"><b>Profit Factor:</b> 0.51</div>
+
+<hr>
+
+<h2>Performance Metrics</h2>
+
+<pre>{'expectancy': -500.03, 'average_rr': -0.33, 'average_holding_minutes': 508.33, 'largest_winner': 1362.13, 'largest_loser': -2117.17, 'consecutive_wins': 1, 'consecutive_losses': 2, 'sharpe_ratio': -0.77}</pre>
+
+<hr>
+
+<h2>Drawdown</h2>
+
+<pre>{'peak_equity': 100983.51, 'max_drawdown_amount': 6672.85, 'max_drawdown_pct': 6.61, 'current_drawdown_amount': 5483.76, 'current_drawdown_pct': 5.43, 'drawdown_curve': [0.0, 0.0, 1.48, 3.58, 2.47, 4.27, 6.09, 4.74, 6.61, 5.43]}</pre>
+
+<hr>
+
+<h2>Equity Curve</h2>
+
+<iframe src="equity_curve.html"></iframe>
+
+<hr>
+
+<h2>Drawdown Curve</h2>
+
+<iframe src="drawdown_curve.html"></iframe>
+
+<hr>
+
+<h2>Trade Chart</h2>
+
+<iframe src="trade_chart.html"></iframe>
+
+<hr>
+
+<h2>Trade History</h2>
+
+<table class="dataframe trade-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>symbol</th>
+      <th>direction</th>
+      <th>quantity</th>
+      <th>entry_time</th>
+      <th>entry_price</th>
+      <th>exit_time</th>
+      <th>exit_price</th>
+      <th>holding_minutes</th>
+      <th>pnl</th>
+      <th>return_pct</th>
+      <th>risk_reward</th>
+      <th>brokerage</th>
+      <th>slippage</th>
+      <th>capital_after_trade</th>
+      <th>exit_reason</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>RELIANCE</td>
+      <td>LONG</td>
+      <td>379</td>
+      <td>2026-07-06 10:15:00+05:30</td>
+      <td>1310.51</td>
+      <td>2026-07-06 10:45:00+05:30</td>
+      <td>1313.16</td>
+      <td>30.0</td>
+      <td>983.51</td>
+      <td>0.20</td>
+      <td>0.66</td>
+      <td>20</td>
+      <td>2.62</td>
+      <td>100983.51</td>
+      <td>UNKNOWN</td>
+    </tr>
+    <tr>
+      <td>RELIANCE</td>
+      <td>LONG</td>
+      <td>182</td>
+      <td>2026-07-09 10:15:00+05:30</td>
+      <td>1291.79</td>
+      <td>2026-07-09 14:30:00+05:30</td>
+      <td>1283.69</td>
+      <td>255.0</td>
+      <td>-1493.64</td>
+      <td>-0.64</td>
+      <td>-1.20</td>
+      <td>20</td>
+      <td>2.58</td>
+      <td>99489.88</td>
+      <td>UNKNOWN</td>
+    </tr>
+    <tr>
+      <td>RELIANCE</td>
+      <td>LONG</td>
+      <td>422</td>
+      <td>2026-07-10 14:15:00+05:30</td>
+      <td>1308.71</td>
+      <td>2026-07-10 14:45:00+05:30</td>
+      <td>1303.74</td>
+      <td>30.0</td>
+      <td>-2117.17</td>
+      <td>-0.38</td>
+      <td>-1.37</td>
+      <td>20</td>
+      <td>2.61</td>
+      <td>97372.71</td>
+      <td>UNKNOWN</td>
+    </tr>
+    <tr>
+      <td>RELIANCE</td>
+      <td>LONG</td>
+      <td>311</td>
+      <td>2026-07-14 10:30:00+05:30</td>
+      <td>1302.70</td>
+      <td>2026-07-14 11:00:00+05:30</td>
+      <td>1306.35</td>
+      <td>30.0</td>
+      <td>1114.54</td>
+      <td>0.28</td>
+      <td>0.81</td>
+      <td>20</td>
+      <td>2.61</td>
+      <td>98487.25</td>
+      <td>UNKNOWN</td>
+    </tr>
+    <tr>
+      <td>RELIANCE</td>
+      <td>LONG</td>
+      <td>307</td>
+      <td>2026-07-17 15:00:00+05:30</td>
+      <td>1326.43</td>
+      <td>2026-07-20 09:15:00+05:30</td>
+      <td>1320.57</td>
+      <td>3975.0</td>
+      <td>-1817.22</td>
+      <td>-0.45</td>
+      <td>-1.31</td>
+      <td>20</td>
+      <td>2.65</td>
+      <td>96670.03</td>
+      <td>UNKNOWN</td>
+    </tr>
+    <tr>
+      <td>RELIANCE</td>
+      <td>LONG</td>
+      <td>330</td>
+      <td>2026-07-23 10:15:00+05:30</td>
+      <td>1286.89</td>
+      <td>2026-07-23 11:15:00+05:30</td>
+      <td>1281.39</td>
+      <td>60.0</td>
+      <td>-1833.96</td>
+      <td>-0.43</td>
+      <td>-1.32</td>
+      <td>20</td>
+      <td>2.57</td>
+      <td>94836.06</td>
+      <td>UNKNOWN</td>
+    </tr>
+    <tr>
+      <td>RELIANCE</td>
+      <td>LONG</td>
+      <td>201</td>
+      <td>2026-07-24 10:15:00+05:30</td>
+      <td>1272.67</td>
+      <td>2026-07-24 11:15:00+05:30</td>
+      <td>1279.55</td>
+      <td>60.0</td>
+      <td>1362.13</td>
+      <td>0.53</td>
+      <td>1.13</td>
+      <td>20</td>
+      <td>2.55</td>
+      <td>96198.20</td>
+      <td>UNKNOWN</td>
+    </tr>
+    <tr>
+      <td>RELIANCE</td>
+      <td>LONG</td>
+      <td>355</td>
+      <td>2026-07-28 10:45:00+05:30</td>
+      <td>1279.38</td>
+      <td>2026-07-28 11:00:00+05:30</td>
+      <td>1274.12</td>
+      <td>15.0</td>
+      <td>-1887.53</td>
+      <td>-0.42</td>
+      <td>-1.33</td>
+      <td>20</td>
+      <td>2.55</td>
+      <td>94310.67</td>
+      <td>UNKNOWN</td>
+    </tr>
+    <tr>
+      <td>RELIANCE</td>
+      <td>LONG</td>
+      <td>260</td>
+      <td>2026-07-30 10:30:00+05:30</td>
+      <td>1286.79</td>
+      <td>2026-07-30 12:30:00+05:30</td>
+      <td>1291.44</td>
+      <td>120.0</td>
+      <td>1189.09</td>
+      <td>0.36</td>
+      <td>0.93</td>
+      <td>20</td>
+      <td>2.58</td>
+      <td>95499.76</td>
+      <td>UNKNOWN</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr>
+
+<p align="center">
+
+Generated by <b>Project Falcon</b>
+
+</p>
+
+</div>
+
+</body>
+
+</html>

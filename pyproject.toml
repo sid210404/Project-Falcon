@@ -1,0 +1,17 @@
+[project]
+name = "project-falcon"
+version = "1.0.0"
+description = "Professional Algorithmic Trading Platform"
+authors = [
+    {name = "Siddhartha Reddy"}
+]
+
+requires-python = ">=3.11"
+
+dependencies = [
+    "pandas",
+    "numpy",
+    "plotly",
+    "streamlit",
+    "pytest",
+]
