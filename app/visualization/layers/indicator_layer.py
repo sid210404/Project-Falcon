@@ -1,15 +1,93 @@
+"""
+Indicator Layer
+
+Draws technical indicators on the price chart.
+"""
+
 import pandas as pd
 import plotly.graph_objects as go
+
+from app.visualization.models.chart_settings import ChartSettings
+from app.visualization.themes import dark
+
+
+INDICATORS = {
+    "EMA20": {
+        "enabled_by": "show_ema20",
+        "color": dark.EMA20,
+        "width": 2,
+    },
+    "EMA50": {
+        "enabled_by": "show_ema50",
+        "color": dark.EMA50,
+        "width": 2,
+    },
+    "VWAP": {
+        "enabled_by": "show_vwap",
+        "color": dark.VWAP,
+        "width": 2,
+    },
+    "opening_high": {
+        "enabled_by": "show_orb",
+        "color": dark.ORB_HIGH,
+        "width": 1,
+    },
+    "opening_low": {
+        "enabled_by": "show_orb",
+        "color": dark.ORB_LOW,
+        "width": 1,
+    },
+}
 
 
 def add_indicator_layer(
     fig: go.Figure,
     df: pd.DataFrame,
+    settings: ChartSettings,
 ) -> None:
     """
-    Indicator layer.
-
-    Will be implemented in the next task.
+    Draw enabled indicators.
     """
 
-    return
+    for column, metadata in INDICATORS.items():
+
+        # Skip if indicator is disabled
+        if not getattr(settings, metadata["enabled_by"]):
+            continue
+
+        # Skip if dataframe doesn't contain indicator
+        if column not in df.columns:
+            continue
+
+        fig.add_trace(
+
+            go.Scatter(
+
+                x=df["datetime"],
+
+                y=df[column],
+
+                mode="lines",
+
+                name=column,
+
+                line=dict(
+
+                    color=metadata["color"],
+
+                    width=metadata["width"],
+
+                ),
+
+                hovertemplate=(
+                    f"<b>{column}</b><br>"
+                    "Value: %{y:.2f}"
+                    "<extra></extra>"
+                ),
+
+            ),
+
+            row=1,
+            col=1,
+
+        )

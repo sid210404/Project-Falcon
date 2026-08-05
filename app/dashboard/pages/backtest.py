@@ -12,6 +12,7 @@ from app.dashboard.components.equity_chart import render_equity_curve
 from app.dashboard.components.metrics import render_metrics
 from app.services.falcon_service import FalconService
 from app.strategy.registry import StrategyRegistry
+from app.visualization.models.chart_settings import ChartSettings
 
 
 def render():
@@ -48,13 +49,11 @@ def render():
         if max_days is None:
 
             min_date = date(2000, 1, 1)
-
             default_start = today - timedelta(days=180)
 
         else:
 
             min_date = today - timedelta(days=max_days)
-
             default_start = today - timedelta(
                 days=min(max_days, 30)
             )
@@ -103,18 +102,14 @@ def render():
 
         st.subheader("Parameters")
 
-        # ------------------------------------------------------
-        # FIXED PARAMETER SELECTOR
-        # ------------------------------------------------------
-
         for parameter, metadata in strategy_class.parameter_space.items():
 
             values = metadata["values"]
             default = metadata["default"]
 
             parameters[parameter] = st.selectbox(
-                label=metadata["label"],
-                options=values,
+                metadata["label"],
+                values,
                 index=values.index(default),
             )
 
@@ -133,23 +128,14 @@ def render():
             step=1000,
         )
 
-    # ==========================================================
-    # Validation
-    # ==========================================================
-
     if symbol == "":
-
-        st.error("Please enter a stock symbol.")
-
+        st.error("Please enter a symbol.")
         return
 
     if start_date > end_date:
-
-        st.error("Start Date cannot be after End Date.")
-
+        st.error("Invalid date range.")
         return
-
-    # ==========================================================
+        # ==========================================================
     # Run Backtest
     # ==========================================================
 
@@ -174,89 +160,155 @@ def render():
 
             with st.spinner("Running backtest..."):
 
-                result = service.run_backtest(
-                    strategy=strategy,
-                    config=config,
-                    generate_report=False,
+                st.session_state.backtest_result = (
+                    service.run_backtest(
+                        strategy=strategy,
+                        config=config,
+                        generate_report=False,
+                    )
                 )
 
         except Exception as e:
 
             st.exception(e)
-
             return
 
-        st.success("Backtest completed successfully!")
-       
+    # ==========================================================
+    # Load Previous Backtest
+    # ==========================================================
 
-        summary_tab, charts_tab, trades_tab, statistics_tab = st.tabs(
-            [
-                "📊 Summary",
-                "📈 Charts",
-                "📋 Trades",
-                "📑 Statistics",
-            ]
+    result = st.session_state.get("backtest_result")
+
+    if result is None:
+        return
+
+    st.success("Backtest completed successfully!")
+
+    # ======================================================
+    # Chart Settings
+    # ======================================================
+
+    if "chart_settings" not in st.session_state:
+
+        st.session_state.chart_settings = ChartSettings()
+
+    settings = st.session_state.chart_settings
+
+    with st.expander(
+        "📊 Chart Settings",
+        expanded=False,
+    ):
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+
+            settings.show_volume = st.checkbox(
+                "Volume",
+                value=settings.show_volume,
+            )
+
+            settings.show_trades = st.checkbox(
+                "Trades",
+                value=settings.show_trades,
+            )
+
+            settings.show_orb = st.checkbox(
+                "Opening Range",
+                value=settings.show_orb,
+            )
+
+        with col2:
+
+            settings.show_ema20 = st.checkbox(
+                "EMA20",
+                value=settings.show_ema20,
+            )
+
+            settings.show_ema50 = st.checkbox(
+                "EMA50",
+                value=settings.show_ema50,
+            )
+
+            settings.show_vwap = st.checkbox(
+                "VWAP",
+                value=settings.show_vwap,
+            )
+
+                # ======================================================
+    # Tabs
+    # ======================================================
+
+    summary_tab, charts_tab, trades_tab, statistics_tab = st.tabs(
+        [
+            "📊 Summary",
+            "📈 Charts",
+            "📋 Trades",
+            "📑 Statistics",
+        ]
+    )
+
+    # ======================================================
+    # Summary
+    # ======================================================
+
+    with summary_tab:
+
+        render_metrics(result)
+
+    # ======================================================
+    # Charts
+    # ======================================================
+
+    with charts_tab:
+
+        render_candlestick(
+            result=result,
+            settings=settings,
         )
 
-        # ======================================================
-        # Summary
-        # ======================================================
+        st.divider()
 
-        with summary_tab:
+        render_equity_curve(result)
 
-            render_metrics(result)
+        st.divider()
 
-        # ======================================================
-        # Charts
-        # ======================================================
+        render_drawdown_curve(result)
 
-        with charts_tab:
+    # ======================================================
+    # Trades
+    # ======================================================
 
-            render_candlestick(result)
+    with trades_tab:
 
-            st.divider()
+        if result.portfolio.trades:
 
-            render_equity_curve(result)
+            st.dataframe(
+                result.portfolio.trade_dataframe(),
+                use_container_width=True,
+            )
 
-            st.divider()
+        else:
 
-            render_drawdown_curve(result)
+            st.info("No trades executed.")
 
-        # ======================================================
-        # Trades
-        # ======================================================
+    # ======================================================
+    # Statistics
+    # ======================================================
 
-        with trades_tab:
+    with statistics_tab:
 
-            if result.portfolio.trades:
+        col1, col2 = st.columns(2)
 
-                df = pd.DataFrame(
-                    [
-                        trade.__dict__
-                        for trade in result.portfolio.trades
-                    ]
-                )
-
-                st.dataframe(
-                    df,
-                    use_container_width=True,
-                )
-
-            else:
-
-                st.info("No trades executed.")
-
-        # ======================================================
-        # Statistics
-        # ======================================================
-
-        with statistics_tab:
+        with col1:
 
             st.subheader("Statistics")
             st.json(result.statistics)
 
+        with col2:
+
             st.subheader("Performance")
             st.json(result.performance)
 
-            st.subheader("Drawdown")
-            st.json(result.drawdown)
+        st.subheader("Drawdown")
+        st.json(result.drawdown)

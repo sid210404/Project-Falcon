@@ -13,13 +13,19 @@ from app.visualization.layers.trade_layer import add_trade_layer
 from app.visualization.utils.layout import configure_layout
 
 
+from app.visualization.models.chart_settings import ChartSettings
+
+
 class VisualizationEngine:
-    """
-    Central visualization engine for Falcon.
-    """
 
     @staticmethod
-    def build(result):
+    def build(
+        result,
+        settings: ChartSettings | None = None,
+    ):
+
+        if settings is None:
+            settings = ChartSettings()
 
         fig = make_subplots(
             rows=2,
@@ -33,11 +39,26 @@ class VisualizationEngine:
 
         add_price_layer(fig, df)
 
-        add_volume_layer(fig, df)
+        if settings.show_volume:
+            add_volume_layer(fig, df)
 
-        add_indicator_layer(fig, df)
+        if (
+            settings.show_ema20
+            or settings.show_ema50
+            or settings.show_vwap
+            or settings.show_orb
+        ):
+            add_indicator_layer(
+                fig,
+                df,
+                settings,
+            )
 
-        add_trade_layer(fig, result)
+        if settings.show_trades:
+            add_trade_layer(
+                fig,
+                result,
+            )
 
         configure_layout(fig)
 
