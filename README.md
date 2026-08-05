@@ -1,26 +1,30 @@
-# 🦅 Project Falcon
+# 🚀 Project Falcon
 
-Professional Algorithmic Trading Platform written in Python.
-
----
+An institutional-grade algorithmic trading research platform built in Python.
 
 ## Features
 
-- Historical Backtesting
-- Strategy Framework
-- Portfolio Analytics
-- Drawdown Analysis
-- Performance Metrics
-- Optimization
-- Streamlit Dashboard
+- 📈 Historical Backtesting
+- ⚙ Strategy Optimization
+- 📊 Interactive Dashboard (Streamlit)
+- 🕯 Candlestick Charts
+- 📉 Equity Curve
+- 📉 Drawdown Analysis
+- 📋 Trade Analytics
+- 📊 Performance Metrics
+- 🛡 Risk Management
+- 📑 Automatic Reports
 
----
+## Current Strategies
 
-## Installation
+- Opening Range Breakout (ORB)
 
-```bash
-git clone ...
+## Technology Stack
 
-python -m venv venv
+- Python
+- Streamlit
+- Pandas
+- Plotly
+- yFinance
 
-pip install -r requirements.txt
+## Project Structure
