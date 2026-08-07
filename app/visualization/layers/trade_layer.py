@@ -1,7 +1,7 @@
 """
 Trade Layer
 
-Draws executed trades on the price chart.
+Draws executed trades.
 """
 
 import plotly.graph_objects as go
@@ -22,42 +22,63 @@ def add_trade_layer(
     if not trades:
         return
 
-    # ===========================
-    # Entries
-    # ===========================
+    # =====================================================
+    # Entry Markers
+    # =====================================================
 
     fig.add_trace(
 
         go.Scatter(
 
-            x=[trade.entry_time for trade in trades],
+            x=[t.entry_time for t in trades],
 
-            y=[trade.entry_price for trade in trades],
+            y=[t.entry_price for t in trades],
 
             mode="markers",
 
-            name="Entry",
+            name="Entries",
+
+            showlegend=False,
 
             marker=dict(
 
                 symbol="triangle-up",
 
-                size=dark.MARKER_SIZE,
+                size=14,
 
                 color=dark.BULL,
 
                 line=dict(
+
                     color="white",
+
                     width=1,
+
                 ),
 
             ),
 
-            hovertemplate=(
-                "<b>ENTRY</b><br>"
-                "Price: ₹%{y:.2f}<br>"
-                "Time: %{x}<extra></extra>"
-            ),
+            customdata=[
+
+                (
+                    t.quantity,
+                    t.entry_time.strftime("%Y-%m-%d %H:%M"),
+                )
+
+                for t in trades
+
+            ],
+
+            hovertemplate=
+            "<b>🟢 BUY</b><br><br>"
+
+            "Price: ₹%{y:.2f}<br>"
+
+            "Quantity: %{customdata[0]}<br>"
+
+            "Time: %{customdata[1]}"
+
+            "<extra></extra>",
 
         ),
 
@@ -66,42 +87,79 @@ def add_trade_layer(
 
     )
 
-    # ===========================
-    # Exits
-    # ===========================
+    # =====================================================
+    # Exit Markers
+    # =====================================================
 
     fig.add_trace(
 
         go.Scatter(
 
-            x=[trade.exit_time for trade in trades],
+            x=[t.exit_time for t in trades],
 
-            y=[trade.exit_price for trade in trades],
+            y=[t.exit_price for t in trades],
 
             mode="markers",
 
-            name="Exit",
+            name="Exits",
+
+            showlegend=False,
 
             marker=dict(
 
                 symbol="triangle-down",
 
-                size=dark.MARKER_SIZE,
+                size=14,
 
                 color=dark.BEAR,
 
                 line=dict(
+
                     color="white",
+
                     width=1,
+
                 ),
 
             ),
 
-            hovertemplate=(
-                "<b>EXIT</b><br>"
-                "Price: ₹%{y:.2f}<br>"
-                "Time: %{x}<extra></extra>"
-            ),
+            customdata=[
+
+                (
+
+                    t.pnl,
+
+                    t.return_pct,
+
+                    t.exit_reason,
+
+                    t.quantity,
+
+                    t.exit_time.strftime("%Y-%m-%d %H:%M"),
+
+                )
+
+                for t in trades
+
+            ],
+
+            hovertemplate=
+
+            "<b>🔴 SELL</b><br><br>"
+
+            "Price: ₹%{y:.2f}<br>"
+
+            "Quantity: %{customdata[3]}<br>"
+
+            "PnL: ₹%{customdata[0]:.2f}<br>"
+
+            "Return: %{customdata[1]:.2f}%<br>"
+
+            "Exit: %{customdata[2]}<br>"
+
+            "Time: %{customdata[4]}"
+
+            "<extra></extra>",
 
         ),
 

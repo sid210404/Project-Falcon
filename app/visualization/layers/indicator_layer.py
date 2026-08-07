@@ -14,26 +14,31 @@ from app.visualization.themes import dark
 INDICATORS = {
     "EMA20": {
         "enabled_by": "show_ema20",
+        "label": "EMA 20",
         "color": dark.EMA20,
         "width": 2,
     },
     "EMA50": {
         "enabled_by": "show_ema50",
+        "label": "EMA 50",
         "color": dark.EMA50,
         "width": 2,
     },
     "VWAP": {
         "enabled_by": "show_vwap",
+        "label": "VWAP",
         "color": dark.VWAP,
         "width": 2,
     },
     "opening_high": {
         "enabled_by": "show_orb",
+        "label": "ORB High",
         "color": dark.ORB_HIGH,
         "width": 1,
     },
     "opening_low": {
         "enabled_by": "show_orb",
+        "label": "ORB Low",
         "color": dark.ORB_LOW,
         "width": 1,
     },
@@ -69,15 +74,13 @@ def add_indicator_layer(
 
                 mode="lines",
 
-                name=column,
+                name=metadata["label"],
 
                 line=dict(
-
                     color=metadata["color"],
-
                     width=metadata["width"],
-
-                ),
+                    dash="dash" if "opening" in column else "solid",
+                    ),
 
                 hovertemplate=(
                     f"<b>{column}</b><br>"

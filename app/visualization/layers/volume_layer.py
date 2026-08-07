@@ -1,3 +1,9 @@
+"""
+Volume Layer
+
+Draws colored volume bars.
+"""
+
 import pandas as pd
 import plotly.graph_objects as go
 
@@ -9,25 +15,48 @@ def add_volume_layer(
     df: pd.DataFrame,
 ) -> None:
     """
-    Draw the volume subplot.
+    Draw the volume layer.
     """
 
-    if "volume" not in df.columns:
-        return
+    colors = []
 
-    colors = [
-        dark.VOLUME_BULL if close >= open_
-        else dark.VOLUME_BEAR
-        for open_, close in zip(df["open"], df["close"])
-    ]
+    for _, row in df.iterrows():
+
+        if row["close"] >= row["open"]:
+            colors.append(dark.VOLUME_BULL)
+        else:
+            colors.append(dark.VOLUME_BEAR)
 
     fig.add_trace(
+
         go.Bar(
+
             x=df["datetime"],
+
             y=df["volume"],
-            marker_color=colors,
+
             name="Volume",
+
+            marker=dict(
+
+                color=colors,
+
+                line=dict(width=0),
+
+            ),
+
+            opacity=0.65,
+
+            showlegend=False,
+
+            hovertemplate=
+            "<b>Volume</b><br>"
+            "%{y:,.0f}"
+            "<extra></extra>",
+
         ),
+
         row=2,
         col=1,
+
     )

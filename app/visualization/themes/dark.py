@@ -1,40 +1,38 @@
 """
 Falcon Dark Theme
-
-Centralized colors and styling for all visualizations.
 """
 
-# ==========================================================
-# Colors
-# ==========================================================
-
+# Background
 BACKGROUND = "#131722"
 PAPER = "#131722"
 
+# Grid
 GRID = "#2A2E39"
 
+# Text
 TEXT = "#D1D4DC"
 
+# Candles
 BULL = "#26A69A"
 BEAR = "#EF5350"
 
-VOLUME_BULL = "#26A69A"
-VOLUME_BEAR = "#EF5350"
+# Borders
+BULL_BORDER = "#26A69A"
+BEAR_BORDER = "#EF5350"
 
+# Indicators
 EMA20 = "#2962FF"
-EMA50 = "#FF9800"
-
+EMA50 = "#FFA726"
 VWAP = "#AB47BC"
-
 ORB_HIGH = "#00E676"
 ORB_LOW = "#FF1744"
 
-# ==========================================================
-# Sizes
-# ==========================================================
+# Volume
+VOLUME_BULL = "#26A69A"
+VOLUME_BEAR = "#EF5350"
 
+# Layout
 CHART_HEIGHT = 900
-
 MARKER_SIZE = 12
-
 LINE_WIDTH = 2
+FONT_SIZE = 13
