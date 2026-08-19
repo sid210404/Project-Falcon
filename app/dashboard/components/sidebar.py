@@ -3,7 +3,7 @@ import streamlit as st
 
 def render_sidebar() -> str:
     """
-    Render the application sidebar.
+    Render the Project Falcon sidebar.
 
     Returns
     -------
@@ -16,15 +16,21 @@ def render_sidebar() -> str:
     page = st.sidebar.radio(
         "Navigation",
         [
-            "Home",
-            "Backtest",
-            "Optimization",
-            "Reports",
-            "Settings",
+            "🏠 Home",
+            "📈 Backtest",
+            "📊 Analytics",
+            "⚙ Optimization",
+            "📄 Reports",
+            "⚙ Settings",
         ],
     )
 
     st.sidebar.markdown("---")
+
+    st.sidebar.subheader("Project")
+
     st.sidebar.caption("Version 3.0")
+
+    st.sidebar.caption("Falcon Quant Platform")
 
     return page

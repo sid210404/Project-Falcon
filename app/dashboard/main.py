@@ -1,14 +1,25 @@
 import streamlit as st
-from app.dashboard.state import initialize
 
+from app.dashboard.state import initialize
 from app.dashboard.components.sidebar import render_sidebar
 from app.dashboard.pages import (
-    home,
+    analytics,
     backtest,
+    home,
     optimization,
     reports,
     settings,
 )
+
+
+PAGES = {
+    "🏠 Home": home.render,
+    "📈 Backtest": backtest.render,
+    "📊 Analytics": analytics.render,
+    "⚙ Optimization": optimization.render,
+    "📄 Reports": reports.render,
+    "⚙ Settings": settings.render,
+}
 
 
 def run_dashboard():
@@ -19,23 +30,12 @@ def run_dashboard():
         layout="wide",
         initial_sidebar_state="expanded",
     )
+
     initialize()
+
     page = render_sidebar()
 
-    if page == "Home":
-        home.render()
-
-    elif page == "Backtest":
-        backtest.render()
-
-    elif page == "Optimization":
-        optimization.render()
-
-    elif page == "Reports":
-        reports.render()
-
-    elif page == "Settings":
-        settings.render()
+    PAGES[page]()
 
 
 if __name__ == "__main__":
