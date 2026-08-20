@@ -1,7 +1,7 @@
 """
 app/services/falcon_service.py
 
-High-level service that orchestrates Falcon's workflow.
+High-level orchestration service for Project Falcon.
 """
 
 from pathlib import Path
@@ -12,24 +12,43 @@ from app.data.historical_data import HistoricalData
 from app.indicators.indicator_engine import IndicatorEngine
 from app.optimization.dataframe import OptimizationDataFrame
 from app.optimization.optimizer import Optimizer
+from app.paper_trading.live_session import LiveSession
+from app.paper_trading.paper_order import PaperOrder
 from app.reports.report_generator import ReportGenerator
+from app.services.paper_trading_service import PaperTradingService
 
 
 class FalconService:
     """
-    High-level orchestration service for Falcon.
+    High-level orchestration service.
 
-    This class coordinates all modules but contains
-    NO trading logic.
+    Coordinates every Falcon subsystem but
+    contains no business logic.
     """
 
     def __init__(self):
 
+        ############################################################
+        # Data
+        ############################################################
+
         self.data = HistoricalData()
+
         self.indicators = IndicatorEngine()
+
+        ############################################################
+        # Backtesting
+        ############################################################
+
         self.optimizer = Optimizer()
 
         self.report_generator = ReportGenerator()
+
+        ############################################################
+        # Paper Trading
+        ############################################################
+
+        self.paper = PaperTradingService()
 
     ####################################################################
     # Backtesting
@@ -41,9 +60,6 @@ class FalconService:
         config: BacktestConfig,
         generate_report: bool = True,
     ):
-        """
-        Complete backtesting workflow.
-        """
 
         print("Downloading historical data...")
 
@@ -74,6 +90,7 @@ class FalconService:
         if generate_report:
 
             reports_dir = Path("reports")
+
             reports_dir.mkdir(exist_ok=True)
 
             print("Generating report...")
@@ -91,9 +108,6 @@ class FalconService:
         strategy_class,
         config: BacktestConfig,
     ):
-        """
-        Runs parameter optimization.
-        """
 
         print("Downloading historical data...")
 
@@ -120,15 +134,96 @@ class FalconService:
         optimization_df = OptimizationDataFrame.build(results)
 
         reports_dir = Path("reports")
+
         reports_dir.mkdir(exist_ok=True)
 
         output_file = reports_dir / "optimization_results.csv"
 
-        optimization_df.to_csv(output_file, index=False)
+        optimization_df.to_csv(
+            output_file,
+            index=False,
+        )
 
-        print(f"Optimization results exported to {output_file}")
+        print(
+            f"Optimization results exported to {output_file}"
+        )
 
         return results
+
+    ####################################################################
+    # Paper Trading
+    ####################################################################
+
+    def create_paper_session(
+        self,
+        strategy,
+        config: BacktestConfig,
+    ) -> LiveSession:
+        """
+        Create a new paper-trading session.
+        """
+
+        return self.paper.create_session(
+            symbol=config.symbol,
+            exchange=config.exchange,
+            interval=config.interval,
+            strategy=strategy,
+            initial_cash=config.capital,
+        )
+
+    def start_paper_session(
+        self,
+        session: LiveSession,
+    ) -> None:
+        """
+        Start paper trading.
+        """
+
+        self.paper.start(session)
+
+    def pause_paper_session(
+        self,
+        session: LiveSession,
+    ) -> None:
+        """
+        Pause paper trading.
+        """
+
+        self.paper.pause(session)
+
+    def stop_paper_session(
+        self,
+        session: LiveSession,
+    ) -> None:
+        """
+        Stop paper trading.
+        """
+
+        self.paper.stop(session)
+
+    def poll_paper_session(
+        self,
+        session: LiveSession,
+    ) -> None:
+        """
+        Process the newest candle.
+        """
+
+        self.paper.poll(session)
+
+    def submit_paper_order(
+        self,
+        session: LiveSession,
+        order: PaperOrder,
+    ) -> None:
+        """
+        Submit a manual paper order.
+        """
+
+        self.paper.submit_order(
+            session,
+            order,
+        )
 
     ####################################################################
     # Convenience
@@ -139,9 +234,6 @@ class FalconService:
         strategy,
         config: BacktestConfig,
     ):
-        """
-        Alias for a standard backtest.
-        """
 
         return self.run_backtest(
             strategy=strategy,

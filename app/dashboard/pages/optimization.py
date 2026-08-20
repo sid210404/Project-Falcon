@@ -244,9 +244,7 @@ def render():
             }
         )
 
-        # ======================================================
-        # Results Table
-        # ======================================================
+        st.markdown("---")
 
         st.subheader("Results")
 
@@ -255,17 +253,17 @@ def render():
             use_container_width=True,
         )
 
-        # ======================================================
-        # Profit Chart
-        # ======================================================
+        st.markdown("---")
 
-        parameter = list(parameter_names)[0]
+        st.subheader("Profit Chart")
 
         fig = px.bar(
             df,
             x=parameter,
             y="Net Profit",
-            title="Net Profit",
+            title="Net Profit by Parameter",
+            color="Net Profit",
+            color_continuous_scale="RdYlGn",
         )
 
         st.plotly_chart(
@@ -273,13 +271,23 @@ def render():
             use_container_width=True,
         )
 
+        st.markdown("---")
+
         # ======================================================
         # CSV
         # ======================================================
 
-        st.download_button(
-            "📥 Download Results",
-            df.to_csv(index=False),
-            file_name="optimization_results.csv",
-            mime="text/csv",
-        )
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.download_button(
+                "📥 Download Results CSV",
+                df.to_csv(index=False),
+                file_name="optimization_results.csv",
+                mime="text/csv",
+                use_container_width=True,
+            )
+
+        with col2:
+            if st.button("📊 Run Analysis Report", use_container_width=True):
+                st.info("Analysis report generation coming soon")

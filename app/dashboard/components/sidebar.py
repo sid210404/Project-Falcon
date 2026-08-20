@@ -19,6 +19,8 @@ def render_sidebar() -> str:
             "🏠 Home",
             "📈 Backtest",
             "📊 Analytics",
+            "📡 Live Paper Trading",
+            "⚔️ Strategy Comparison",
             "⚙ Optimization",
             "📄 Reports",
             "⚙ Settings",

@@ -1,5 +1,5 @@
 """
-PnL Distribution Chart
+Exit Reason Analysis
 """
 
 import pandas as pd
@@ -18,20 +18,39 @@ def render(result):
         [trade.to_dict() for trade in result.portfolio.trades]
     )
 
-    fig = px.histogram(
-        df,
-        x="pnl",
-        nbins=20,
-        title="PnL Distribution",
+    counts = (
+        df["exit_reason"]
+        .value_counts()
+        .reset_index()
+    )
+
+    counts.columns = [
+        "Reason",
+        "Trades",
+    ]
+
+    fig = px.bar(
+
+        counts,
+
+        x="Reason",
+
+        y="Trades",
+
+        title="Exit Reasons",
+
     )
 
     fig.update_layout(
-        xaxis_title="PnL (₹)",
-        yaxis_title="Number of Trades",
-        bargap=0.1,
+
+        height=420,
+
     )
 
     st.plotly_chart(
+
         fig,
+
         use_container_width=True,
+
     )

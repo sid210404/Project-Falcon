@@ -43,7 +43,7 @@ class Statistics:
             }
 
         df = pd.DataFrame(
-            [trade.__dict__ for trade in portfolio.trades]
+            [trade.to_dict() for trade in portfolio.trades]
         )
 
         wins = df[df["pnl"] > 0]

@@ -1,5 +1,5 @@
 """
-PnL Distribution Chart
+Holding Time Distribution
 """
 
 import pandas as pd
@@ -10,25 +10,38 @@ import streamlit as st
 def render(result):
 
     if not result.portfolio.trades:
-
         st.info("No trades available.")
         return
 
-    df = pd.DataFrame(
-        [trade.to_dict() for trade in result.portfolio.trades]
-    )
+    df = pd.DataFrame({
+
+        "holding_minutes": [
+            trade.holding_minutes
+            for trade in result.portfolio.trades
+        ]
+
+    })
 
     fig = px.histogram(
+
         df,
-        x="pnl",
+
+        x="holding_minutes",
+
         nbins=20,
-        title="PnL Distribution",
+
+        title="Holding Time Distribution",
+
     )
 
     fig.update_layout(
-        xaxis_title="PnL (₹)",
+
+        xaxis_title="Holding Time (minutes)",
+
         yaxis_title="Number of Trades",
-        bargap=0.1,
+
+        height=420,
+
     )
 
     st.plotly_chart(
