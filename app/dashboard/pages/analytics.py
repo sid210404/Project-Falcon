@@ -1,4 +1,15 @@
+"""
+Falcon Analytics Dashboard.
+"""
+
 import streamlit as st
+
+from app.dashboard.components.analytics import (
+    charts,
+    overview,
+    risk_analysis,
+    trade_analysis,
+)
 
 
 def render():
@@ -13,41 +24,23 @@ def render():
 
         return
 
-    overview_tab, trades_tab, risk_tab = st.tabs(
+    overview_tab, trades_tab, risk_tab, charts_tab = st.tabs(
         [
             "📊 Overview",
             "📈 Trades",
             "⚠ Risk",
+            "📊 Charts",
         ]
     )
 
     with overview_tab:
-
-        st.subheader("Portfolio Summary")
-
-        st.metric(
-            "Net Profit",
-            f"₹{result.portfolio.total_pnl:,.2f}",
-        )
-
-        st.metric(
-            "Return",
-            f"{result.portfolio.total_return_pct:.2f}%",
-        )
-
-        st.metric(
-            "Trades",
-            result.portfolio.total_trades,
-        )
+        overview.render(result)
 
     with trades_tab:
-
-        st.info(
-            "Trade Analytics coming soon..."
-        )
+        trade_analysis.render(result)
 
     with risk_tab:
+        risk_analysis.render(result)
 
-        st.info(
-            "Risk Analytics coming soon..."
-        )
+    with charts_tab:
+        charts.render(result)
