@@ -13,6 +13,7 @@ from app.strategy.orb_strategy import ORBStrategy
 from app.strategy.rsi_mean_reversion_strategy import RSIMeanReversionStrategy
 from app.strategy.supertrend_strategy import SuperTrendStrategy
 from app.strategy.vwap_pullback_strategy import VWAPPullbackStrategy
+from app.strategy.orb_pro_strategy import ORBProStrategy
 class StrategyRegistry:
     """Registry of available trading strategies."""
 
@@ -24,6 +25,7 @@ class StrategyRegistry:
         "ORB": ORBStrategy,
         "SuperTrend": SuperTrendStrategy,
         "VWAP Pullback": VWAPPullbackStrategy,
+        "ORB Pro": ORBProStrategy,
     }
 
     @classmethod
