@@ -4,11 +4,8 @@ from __future__ import annotations
 
 import logging
 
-import pandas as pd
-
 from app.backtesting.exit_manager import ExitManager
 from app.backtesting.risk_manager import RiskManager
-from app.indicators.indicator_engine import IndicatorEngine
 from app.paper_trading.execution_engine import PaperExecutionEngine
 from app.paper_trading.live_session import LiveSession, SessionStatus
 from app.paper_trading.market_data_feed import LiveCandle
@@ -18,6 +15,7 @@ from app.paper_trading.paper_order import (
     PaperOrder,
 )
 from app.paper_trading.paper_trade import PaperTrade
+from app.paper_trading.strategy_runner import StrategyRunner
 
 LOGGER = logging.getLogger(__name__)
 
@@ -38,7 +36,7 @@ class PaperEngine:
         self._exit = ExitManager()
 
     # ------------------------------------------------------------------
-    # Warmup
+    # Warm-up
     # ------------------------------------------------------------------
 
     def seed_history(
@@ -46,10 +44,16 @@ class PaperEngine:
         session: LiveSession,
         candles: list[LiveCandle],
     ) -> None:
+        """Warm indicators without executing trades."""
+
+        import pandas as pd
 
         session.candle_history = pd.DataFrame(
             [c.to_dict() for c in candles]
         )
+
+        if getattr(session, "runner", None) is None:
+            session.runner = StrategyRunner(session.strategy)
 
         if candles:
             session.last_candle_at = candles[-1].timestamp
@@ -67,6 +71,9 @@ class PaperEngine:
         session: LiveSession,
         candle: LiveCandle,
     ) -> None:
+        """Process one completed candle."""
+
+        import pandas as pd
 
         if (
             session.status is not SessionStatus.RUNNING
@@ -86,26 +93,23 @@ class PaperEngine:
 
         self._process_pending_orders(session, candle)
 
-        prepared = IndicatorEngine.apply_all(
-            session.candle_history.copy()
-        )
+        signal_event = session.runner.run(session.candle_history)
 
-        if prepared.empty:
+        if signal_event is None:
             session.portfolio.mark_to_market(
                 candle.close,
                 candle.timestamp,
             )
             return
 
-        latest = session.strategy.generate_signals(prepared).iloc[-1]
-
-        signal = int(latest["signal"])
+        latest = signal_event.candle
+        signal = signal_event.signal
 
         position = session.portfolio.open_position
 
-        # ----------------------------------------------------------
-        # No open position
-        # ----------------------------------------------------------
+        # --------------------------------------------------------------
+        # No position
+        # --------------------------------------------------------------
 
         if position is None:
 
@@ -123,16 +127,15 @@ class PaperEngine:
                     OrderSide.SELL,
                 )
 
-        # ----------------------------------------------------------
+        # --------------------------------------------------------------
         # Existing position
-        # ----------------------------------------------------------
+        # --------------------------------------------------------------
 
         else:
 
             self._apply_trailing_stop(
-                position,
-                candle.close,
                 session,
+                candle.close,
             )
 
             should_exit, exit_price, reason = self._exit.should_exit(
@@ -149,7 +152,7 @@ class PaperEngine:
                     reason,
                 )
 
-                # Reverse immediately
+                # Re-enter immediately if signal persists
 
                 if signal == 1:
                     self._open_position(
@@ -166,8 +169,6 @@ class PaperEngine:
                     )
 
             else:
-
-                # Reverse on opposite signal
 
                 if (
                     position.direction == "LONG"
@@ -217,14 +218,18 @@ class PaperEngine:
     def _open_position(
         self,
         session: LiveSession,
-        candle: pd.Series,
+        candle,
         side: OrderSide,
     ) -> None:
 
         atr = float(candle["ATR_14"])
         price = float(candle["close"])
 
-        direction = "LONG" if side is OrderSide.BUY else "SHORT"
+        direction = (
+            "LONG"
+            if side is OrderSide.BUY
+            else "SHORT"
+        )
 
         stop_loss = self._risk.calculate_stop_loss(
             price,
@@ -277,7 +282,7 @@ class PaperEngine:
         session.portfolio.open(position)
 
         session.notify(
-            f"{side} {quantity} {session.symbol} @ {price:.2f}",
+            f"{direction} {quantity} {session.symbol} @ {price:.2f}",
             "success",
         )
 
@@ -288,7 +293,7 @@ class PaperEngine:
         )
 
     # ------------------------------------------------------------------
-    # Close
+    # Close Position
     # ------------------------------------------------------------------
 
     def _close_position(
@@ -320,10 +325,7 @@ class PaperEngine:
             "success" if trade.pnl >= 0 else "warning",
         )
 
-        LOGGER.info(
-            "Position closed (%s)",
-            reason,
-        )
+        LOGGER.info("Position closed (%s)", reason)
 
     # ------------------------------------------------------------------
     # Manual Orders
@@ -429,10 +431,14 @@ class PaperEngine:
 
     @staticmethod
     def _apply_trailing_stop(
-        position,
-        price: float,
         session: LiveSession,
+        price: float,
     ) -> None:
+
+        position = session.portfolio.open_position
+
+        if position is None:
+            return
 
         trailing = next(
             (
