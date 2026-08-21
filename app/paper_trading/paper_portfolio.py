@@ -1,4 +1,4 @@
-"""Virtual cash, position, and equity accounting for paper trading."""
+"""Virtual cash, margin and equity accounting for paper trading."""
 
 from __future__ import annotations
 
@@ -11,100 +11,180 @@ from app.paper_trading.paper_trade import PaperTrade
 
 @dataclass(frozen=True, slots=True)
 class EquityPoint:
-    """A marked-to-market portfolio equity observation."""
-
     timestamp: datetime
     equity: float
 
 
 @dataclass(slots=True)
 class PaperPortfolio:
-    """Cash-account paper portfolio supporting one strategy position per session."""
+    """
+    Paper trading portfolio.
+
+    Supports:
+    - LONG positions
+    - SHORT positions
+    - Margin reservation
+    - Realized PnL
+    - Unrealized PnL
+    - Drawdown
+    """
 
     initial_cash: float
+    margin_requirement: float = 0.20
+
     cash: float = field(init=False)
+    reserved_margin: float = field(default=0.0)
+
     open_position: Position | None = None
+
     closed_trades: list[PaperTrade] = field(default_factory=list)
     equity_curve: list[EquityPoint] = field(default_factory=list)
+
     last_price: float | None = None
 
     def __post_init__(self) -> None:
         if self.initial_cash <= 0:
             raise ValueError("initial_cash must be positive.")
+
         self.cash = float(self.initial_cash)
 
     @property
     def holdings(self) -> dict[str, int]:
-        """Return current virtual holdings by symbol."""
         if self.open_position is None:
             return {}
-        return {self.open_position.symbol: self.open_position.quantity}
+
+        qty = self.open_position.quantity
+
+        if self.open_position.direction == "SHORT":
+            qty = -qty
+
+        return {self.open_position.symbol: qty}
 
     @property
     def realized_pnl(self) -> float:
-        """Return aggregate PnL from closed virtual trades."""
         return sum(item.trade.pnl for item in self.closed_trades)
 
     @property
     def unrealized_pnl(self) -> float:
-        """Return current marked-to-market PnL for the open position."""
         if self.open_position is None or self.last_price is None:
             return 0.0
+
         return self.open_position.current_pnl(self.last_price)
 
     @property
     def equity(self) -> float:
-        """Return cash plus the current marked value of holdings."""
-        if self.open_position is None or self.last_price is None:
-            return self.cash
-        return self.cash + self.open_position.quantity * self.last_price
+        """
+        Equity = Free Cash + Reserved Margin + Unrealized PnL
+        """
+
+        return (
+            self.cash
+            + self.reserved_margin
+            + self.unrealized_pnl
+        )
+
+    @property
+    def available_cash(self) -> float:
+        return self.cash
+
+    @property
+    def exposure(self) -> float:
+        if self.open_position is None:
+            return 0.0
+
+        return self.open_position.quantity * self.open_position.entry_price
 
     @property
     def drawdown_pct(self) -> float:
-        """Return current drawdown from the highest recorded equity point."""
         if not self.equity_curve:
             return 0.0
+
         peak = max(point.equity for point in self.equity_curve)
-        return 0.0 if peak == 0 else (peak - self.equity) / peak * 100
+
+        if peak == 0:
+            return 0.0
+
+        return (peak - self.equity) / peak * 100
 
     @property
     def win_rate(self) -> float:
-        """Return percentage of profitable closed trades."""
         if not self.closed_trades:
             return 0.0
+
         winners = sum(item.trade.is_winner for item in self.closed_trades)
+
         return winners / len(self.closed_trades) * 100
 
     def open(self, position: Position) -> None:
-        """Reserve virtual cash for a filled long position."""
         if self.open_position is not None:
             raise ValueError("A position is already open.")
-        if position.invested_amount > self.cash:
-            raise ValueError("Insufficient virtual cash for this position.")
-        self.cash -= position.invested_amount
+
+        exposure = position.entry_price * position.quantity
+
+        if position.direction == "LONG":
+            if exposure > self.cash:
+                raise ValueError("Insufficient virtual cash.")
+
+            self.cash -= exposure
+
+        else:
+            margin = exposure * self.margin_requirement
+
+            if margin > self.cash:
+                raise ValueError("Insufficient virtual margin.")
+
+            self.cash -= margin
+            self.reserved_margin = margin
+
         self.open_position = position
 
     def close(self, paper_trade: PaperTrade) -> None:
-        """Release proceeds and record a completed virtual trade."""
+        if self.open_position is None:
+            raise ValueError("No open position.")
+
         trade = paper_trade.trade
-        self.cash += trade.exit_price * trade.quantity - trade.brokerage
+        position = self.open_position
+
+        if position.direction == "LONG":
+            proceeds = trade.exit_price * trade.quantity
+
+            self.cash += proceeds - trade.brokerage
+
+        else:
+            self.cash += self.reserved_margin
+            self.cash += trade.pnl - trade.brokerage
+            self.reserved_margin = 0.0
+
         self.closed_trades.append(paper_trade)
         self.open_position = None
 
-    def mark_to_market(self, price: float, timestamp: datetime) -> None:
-        """Update the latest market price and append an equity observation."""
+    def mark_to_market(
+        self,
+        price: float,
+        timestamp: datetime,
+    ) -> None:
+
         self.last_price = price
-        self.equity_curve.append(EquityPoint(timestamp=timestamp, equity=self.equity))
+
+        self.equity_curve.append(
+            EquityPoint(
+                timestamp=timestamp,
+                equity=self.equity,
+            )
+        )
 
     def summary(self) -> dict[str, float | int]:
-        """Return UI-ready, accounting-owned portfolio metrics."""
+
         return {
-            "cash": self.cash,
-            "equity": self.equity,
-            "realized_pnl": self.realized_pnl,
-            "unrealized_pnl": self.unrealized_pnl,
+            "cash": round(self.cash, 2),
+            "available_cash": round(self.available_cash, 2),
+            "reserved_margin": round(self.reserved_margin, 2),
+            "equity": round(self.equity, 2),
+            "exposure": round(self.exposure, 2),
+            "realized_pnl": round(self.realized_pnl, 2),
+            "unrealized_pnl": round(self.unrealized_pnl, 2),
             "open_positions": int(self.open_position is not None),
             "closed_trades": len(self.closed_trades),
-            "win_rate": self.win_rate,
-            "drawdown_pct": self.drawdown_pct,
+            "win_rate": round(self.win_rate, 2),
+            "drawdown_pct": round(self.drawdown_pct, 2),
         }
