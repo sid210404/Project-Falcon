@@ -12,7 +12,7 @@ from app.strategy.ema_crossover_strategy import EMACrossoverStrategy
 from app.strategy.orb_strategy import ORBStrategy
 from app.strategy.rsi_mean_reversion_strategy import RSIMeanReversionStrategy
 from app.strategy.supertrend_strategy import SuperTrendStrategy
-
+from app.strategy.vwap_pullback_strategy import VWAPPullbackStrategy
 class StrategyRegistry:
     """Registry of available trading strategies."""
 
@@ -23,6 +23,7 @@ class StrategyRegistry:
         "Donchian Breakout": DonchianBreakoutStrategy,
         "ORB": ORBStrategy,
         "SuperTrend": SuperTrendStrategy,
+        "VWAP Pullback": VWAPPullbackStrategy,
     }
 
     @classmethod
